@@ -4,11 +4,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "lodash": "4.17.15"
+    "lodash.isfunction": "3.0.9",
+    "lodash.isnil": "4.0.0"
   },
   "devDependencies": {
     "@types/jest": "24.0.15",
-    "@types/lodash": "4.14.136",
+    "@types/lodash.isfunction": "3.0.6",
+    "@types/lodash.isnil": "4.0.6",
     "husky": "3.0.1",
     "jest": "24.8.0",
     "prettier": "1.18.2",
