@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "esnext",
+    "target": "es5",
+    "lib": ["esnext", "dom"],
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "declaration": true,
+    "removeComments": true
+  },
+  "exclude": ["node_modules", "dist", "src/Maybe.test.ts"]
+}
