@@ -7,7 +7,7 @@ class Maybe<T> {
    * Throws error if value is null or undefined
    * @param value
    */
-  static some<T>(value: T) {
+  static some<T>(value: T): Maybe<NonNullable<T>> {
     if (isNil(value)) {
       throw Error("Provided value must not be empty");
     }
@@ -17,7 +17,7 @@ class Maybe<T> {
   /**
    * Create a maybe with no value
    */
-  static none<T>() {
+  static none<T>(): Maybe<NonNullable<T>> {
     return new Maybe<NonNullable<T>>(null);
   }
 
@@ -25,10 +25,24 @@ class Maybe<T> {
    * Create a maybe that is either some or none depending on the provided value
    * @param value
    */
-  static of<T>(value: T) {
+  static of<T>(value: T): Maybe<NonNullable<T>> {
     return isNil(value)
       ? Maybe.none<NonNullable<T>>()
       : Maybe.some<NonNullable<T>>(value!);
+  }
+
+  /**
+   * Create a maybe from a function that might throw an error
+   * Returns none if an error is thrown
+   * @param valueFunction
+   */
+  static try_of<T>(valueFunction: () => T): Maybe<NonNullable<T>> {
+    try {
+      const value = valueFunction();
+      return Maybe.of(value);
+    } catch (e) {
+      return Maybe.none();
+    }
   }
 
   /**
