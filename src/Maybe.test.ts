@@ -60,7 +60,7 @@ describe("Maybe", () => {
       }
     };
 
-    const maybeC = Maybe.try_of(() => value.a!.b!.c);
+    const maybeC = Maybe.tryOf(() => value.a!.b!.c);
     expect(maybeC.isSome()).toBeTruthy();
     expect(maybeC.get()).toEqual(42);
   });
@@ -80,7 +80,7 @@ describe("Maybe", () => {
       }
     };
 
-    const maybeC = Maybe.try_of(() => value.a!.b!.c);
+    const maybeC = Maybe.tryOf(() => value.a!.b!.c);
     expect(maybeC.isNone()).toBeTruthy();
   });
 

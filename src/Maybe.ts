@@ -36,7 +36,7 @@ class Maybe<T> {
    * Returns none if an error is thrown
    * @param valueFunction
    */
-  static try_of<T>(valueFunction: () => T): Maybe<NonNullable<T>> {
+  static tryOf<T>(valueFunction: () => T): Maybe<NonNullable<T>> {
     try {
       const value = valueFunction();
       return Maybe.of(value);
