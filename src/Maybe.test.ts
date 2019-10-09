@@ -92,9 +92,9 @@ describe("Maybe", () => {
   });
 
   it("should get the value if some and use the default value if none", () => {
-    expect(Maybe.some(5).getOrElse(4)).toEqual(5);
-    expect(Maybe.none().getOrElse(4)).toEqual(4);
-    expect(Maybe.none().getOrElse(() => 4)).toEqual(4);
+    expect(Maybe.some(5).getOr(4)).toEqual(5);
+    expect(Maybe.none().getOr(4)).toEqual(4);
+    expect(Maybe.none().getOr(() => 4)).toEqual(4);
   });
 
   it("should let the value be a new type wrapped in a maybe", () => {
@@ -111,16 +111,42 @@ describe("Maybe", () => {
     ).toBeTruthy();
   });
 
+  it("should fallback if is none", () => {
+    const v1 = true ? undefined : 5;
+    const v2 = true ? "v2" : undefined;
+
+    expect(
+      Maybe.of(v1)
+        .or(v2)
+        .orGet({ a: 5 })
+    ).toEqual("v2");
+    expect(Maybe.of(v1).orGet("v2")).toEqual("v2");
+    expect(Maybe.of(v1).orGet(() => "v2")).toEqual("v2");
+  });
+
+  it("should not use the fallback if is some", () => {
+    const v1 = true ? 5 : undefined;
+    const v2 = true ? "v2" : undefined;
+
+    expect(
+      Maybe.of(v1)
+        .or(v2)
+        .orGet("v2")
+    ).toEqual(5);
+    expect(Maybe.of(v1).orGet("v2")).toEqual(5);
+    expect(Maybe.of(v1).orGet(() => "v2")).toEqual(5);
+  });
+
   it("should return the maybe on let if it is none", () => {
     const maybe = Maybe.none<number>();
     expect(maybe.let(num => num.toString())).toEqual(maybe);
   });
 
   it("should let the value be a new type if some or use the default value if none", () => {
-    expect(Maybe.some(5).letOrElse(num => num + 1, 0)).toEqual(6);
-    expect(Maybe.some(1).letOrElse(num => ["0", "1"][num], "0")).toEqual("1");
-    expect(Maybe.none<number>().letOrElse(num => num + 1, 5)).toEqual(5);
-    expect(Maybe.none<number>().letOrElse(num => num + 1, () => 5)).toEqual(5);
+    expect(Maybe.some(5).letOr(num => num + 1, 0)).toEqual(6);
+    expect(Maybe.some(1).letOr(num => ["0", "1"][num], "0")).toEqual("1");
+    expect(Maybe.none<number>().letOr(num => num + 1, 5)).toEqual(5);
+    expect(Maybe.none<number>().letOr(num => num + 1, () => 5)).toEqual(5);
   });
 
   it("should ifIsSome call the function", () => {

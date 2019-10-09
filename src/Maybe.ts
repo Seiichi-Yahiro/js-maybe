@@ -7,11 +7,11 @@ class Maybe<T> {
    * Throws error if value is null or undefined
    * @param value
    */
-  static some<T>(value: T): Maybe<NonNullable<T>> {
+  static some<T>(value: (() => T) | T): Maybe<NonNullable<T>> {
     if (isNil(value)) {
       throw Error("Provided value must not be empty");
     }
-    return new Maybe<NonNullable<T>>(value!);
+    return new Maybe<NonNullable<T>>(isFunction(value) ? value()! : value!);
   }
 
   /**
@@ -25,10 +25,8 @@ class Maybe<T> {
    * Create a maybe that is either some or none depending on the provided value
    * @param value
    */
-  static of<T>(value: T): Maybe<NonNullable<T>> {
-    return isNil(value)
-      ? Maybe.none<NonNullable<T>>()
-      : Maybe.some<NonNullable<T>>(value!);
+  static of<T>(value: (() => T) | T): Maybe<NonNullable<T>> {
+    return isNil(value) ? Maybe.none() : Maybe.some(value);
   }
 
   /**
@@ -72,7 +70,7 @@ class Maybe<T> {
    * Get the value of the maybe if it is a some otherwise use the provided default value
    * @param defaultValue - default value (or function that creates a default value) to be used if value is none
    */
-  getOrElse = (defaultValue: (() => T) | T): T => {
+  getOr = (defaultValue: (() => T) | T): T => {
     if (this.isNone()) {
       return isFunction(defaultValue) ? defaultValue() : defaultValue;
     }
@@ -104,12 +102,36 @@ class Maybe<T> {
    * @param onSome - a function receiving the value returning a new value
    * @param defaultValue - default value (or function that creates a default value) to be used if value is none
    */
-  letOrElse<U>(onSome: (value: T) => U, defaultValue: (() => U) | U): U {
+  letOr<U>(onSome: (value: T) => U, defaultValue: (() => U) | U): U {
     if (this.isNone()) {
       return isFunction(defaultValue) ? defaultValue() : defaultValue;
     }
 
     return onSome(this.value!);
+  }
+
+  /**
+   * Fallback to a different value if the current maybe is none
+   * @param value - fallback value
+   */
+  or<U>(value: (() => U) | U): Maybe<NonNullable<T | U>> {
+    if (this.isNone()) {
+      return Maybe.of(value);
+    }
+
+    return (this as unknown) as Maybe<NonNullable<T | U>>;
+  }
+
+  /**
+   * Fallback to a different value if the current maybe is none and immediately get it
+   * @param value - fallback value
+   */
+  orGet<U>(value: (() => U) | U): T | U {
+    if (this.isNone()) {
+      return isFunction(value) ? value() : value;
+    }
+
+    return this.value!;
   }
 
   /**
