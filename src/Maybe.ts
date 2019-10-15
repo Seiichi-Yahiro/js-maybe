@@ -135,6 +135,19 @@ class Maybe<T> {
   }
 
   /**
+   * Create a maybe from a function that might throw an error
+   * Returns none if an error is thrown
+   * @param onSome
+   */
+  try<U>(onSome: (value: T) => U | Maybe<U>): Maybe<NonNullable<U>> {
+    try {
+      return this.let(onSome);
+    } catch (e) {
+      return Maybe.none();
+    }
+  }
+
+  /**
    * If value of the maybe is some call the provided function
    * @param onSome - function receiving the value
    */

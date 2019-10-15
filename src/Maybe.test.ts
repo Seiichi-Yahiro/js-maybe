@@ -84,6 +84,47 @@ describe("Maybe", () => {
     expect(maybeC.isNone()).toBeTruthy();
   });
 
+  it("should try to convert a some if no error is thrown", () => {
+    interface Value {
+      a?: {
+        b?: {
+          c?: number;
+        };
+      };
+    }
+
+    const value: Value = {
+      a: {
+        b: {
+          c: 42
+        }
+      }
+    };
+
+    const maybeC = Maybe.some(value).try(it => it.a!.b!.c);
+    expect(maybeC.isSome()).toBeTruthy();
+    expect(maybeC.get()).toEqual(42);
+  });
+
+  it("should try to convert to a none if an error is thrown", () => {
+    interface Value {
+      a?: {
+        b?: {
+          c?: number;
+        };
+      };
+    }
+
+    const value: Value = {
+      a: {
+        b: undefined
+      }
+    };
+
+    const maybeC = Maybe.some(value).try(it => it.a!.b!.c);
+    expect(maybeC.isNone()).toBeTruthy();
+  });
+
   it("should get the value if some and throw error if none", () => {
     expect(Maybe.some(5).get()).toEqual(5);
     expect(() => Maybe.none().get()).toThrowError(
