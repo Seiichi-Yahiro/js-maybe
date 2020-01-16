@@ -62,7 +62,7 @@ describe("Maybe", () => {
 
     const maybeC = Maybe.tryOf(() => value.a!.b!.c);
     expect(maybeC.isSome()).toBeTruthy();
-    expect(maybeC.get()).toEqual(42);
+    expect(maybeC.unwrap()).toEqual(42);
   });
 
   it("should catch the error and return a none", () => {
@@ -103,7 +103,7 @@ describe("Maybe", () => {
 
     const maybeC = Maybe.some(value).try(it => it.a!.b!.c);
     expect(maybeC.isSome()).toBeTruthy();
-    expect(maybeC.get()).toEqual(42);
+    expect(maybeC.unwrap()).toEqual(42);
   });
 
   it("should try to convert to a none if an error is thrown", () => {
@@ -125,69 +125,159 @@ describe("Maybe", () => {
     expect(maybeC.isNone()).toBeTruthy();
   });
 
-  it("should get the value if some and throw error if none", () => {
-    expect(Maybe.some(5).get()).toEqual(5);
-    expect(() => Maybe.none().get()).toThrowError(
+  it("should unwrap the value if some and throw error if none", () => {
+    expect(Maybe.some(5).unwrap()).toEqual(5);
+    expect(() => Maybe.none().unwrap()).toThrowError(
       "Provided value must not be empty"
     );
   });
 
-  it("should get the value if some and use the default value if none", () => {
-    expect(Maybe.some(5).getOr(4)).toEqual(5);
-    expect(Maybe.none().getOr(4)).toEqual(4);
-    expect(Maybe.none().getOr(() => 4)).toEqual(4);
+  it("should unwrap the value if some and use the default value if none", () => {
+    expect(Maybe.some(5).unwrapOr(4)).toEqual(5);
+    expect(Maybe.none().unwrapOr(4)).toEqual(4);
+    expect(Maybe.none().unwrapOr(() => 4)).toEqual(4);
   });
 
-  it("should let the value be a new type wrapped in a maybe", () => {
+  it("should unwrap the value if some and throw a custom error if none", () => {
+    const customErrorMsg = "My Error";
+    expect(Maybe.some(5).expect(customErrorMsg)).toEqual(5);
+    expect(() => Maybe.none().expect(customErrorMsg)).toThrowError(
+      customErrorMsg
+    );
+  });
+
+  it("should map the value be a new type wrapped in a maybe", () => {
     expect(
       Maybe.some(5)
-        .let(num => num + 1)
+        .map(num => num + 1)
         .equals(Maybe.some(6))
     ).toBeTruthy();
 
     expect(
       Maybe.some(5)
-        .let(num => Maybe.some(num + 1))
+        .map(num => Maybe.some(num + 1))
         .equals(Maybe.some(6))
     ).toBeTruthy();
   });
 
-  it("should fallback if is none", () => {
-    const v1 = true ? undefined : 5;
-    const v2 = true ? "v2" : undefined;
-
-    expect(
-      Maybe.of(v1)
-        .or(v2)
-        .orGet({ a: 5 })
-    ).toEqual("v2");
-    expect(Maybe.of(v1).orGet("v2")).toEqual("v2");
-    expect(Maybe.of(v1).orGet(() => "v2")).toEqual("v2");
-  });
-
-  it("should not use the fallback if is some", () => {
-    const v1 = true ? 5 : undefined;
-    const v2 = true ? "v2" : undefined;
-
-    expect(
-      Maybe.of(v1)
-        .or(v2)
-        .orGet("v2")
-    ).toEqual(5);
-    expect(Maybe.of(v1).orGet("v2")).toEqual(5);
-    expect(Maybe.of(v1).orGet(() => "v2")).toEqual(5);
-  });
-
-  it("should return the maybe on let if it is none", () => {
+  it("should return the maybe on map if it is none", () => {
     const maybe = Maybe.none<number>();
-    expect(maybe.let(num => num.toString())).toEqual(maybe);
+    expect(maybe.map(num => num.toString())).toEqual(maybe);
   });
 
-  it("should let the value be a new type if some or use the default value if none", () => {
-    expect(Maybe.some(5).letOr(num => num + 1, 0)).toEqual(6);
-    expect(Maybe.some(1).letOr(num => ["0", "1"][num], "0")).toEqual("1");
-    expect(Maybe.none<number>().letOr(num => num + 1, 5)).toEqual(5);
-    expect(Maybe.none<number>().letOr(num => num + 1, () => 5)).toEqual(5);
+  it("should map the value be a new type if some or use the default value if none", () => {
+    expect(Maybe.some(5).mapOr(num => num + 1, 0)).toEqual(6);
+    expect(Maybe.some(1).mapOr(num => ["0", "1"][num], "0")).toEqual("1");
+    expect(Maybe.none<number>().mapOr(num => num + 1, 5)).toEqual(5);
+    expect(Maybe.none<number>().mapOr(num => num + 1, () => 5)).toEqual(5);
+  });
+
+  it("should filter the contained value", () => {
+    expect(
+      Maybe.some(5)
+        .filter(num => num === 5)
+        .unwrap()
+    ).toEqual(5);
+    expect(
+      Maybe.some(5)
+        .filter(num => num === 4)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.none<number>()
+        .filter(num => num === 5)
+        .isNone()
+    ).toBeTruthy();
+  });
+
+  it("should and 2 maybes", () => {
+    expect(
+      Maybe.some(5)
+        .and(4)
+        .unwrap()
+    ).toEqual(4);
+    expect(
+      Maybe.some(5)
+        .and(undefined)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.none<number>()
+        .and(4)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.none()
+        .and(undefined)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.some(5)
+        .and(() => 4)
+        .unwrap()
+    ).toEqual(4);
+  });
+
+  it("should or 2 maybes", () => {
+    expect(
+      Maybe.some(5)
+        .or(4)
+        .unwrap()
+    ).toEqual(5);
+    expect(
+      Maybe.some(5)
+        .or(undefined)
+        .unwrap()
+    ).toEqual(5);
+    expect(
+      Maybe.none<number>()
+        .or(4)
+        .unwrap()
+    ).toEqual(4);
+    expect(
+      Maybe.none()
+        .or(undefined)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.none<number>()
+        .or(() => 4)
+        .unwrap()
+    ).toEqual(4);
+  });
+
+  it("should xor 2 maybes", () => {
+    expect(
+      Maybe.some(5)
+        .xor(4)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.some(5)
+        .xor(undefined)
+        .unwrap()
+    ).toEqual(5);
+    expect(
+      Maybe.none<number>()
+        .xor(4)
+        .unwrap()
+    ).toEqual(4);
+    expect(
+      Maybe.none()
+        .xor(undefined)
+        .isNone()
+    ).toBeTruthy();
+    expect(
+      Maybe.none<number>()
+        .xor(() => 4)
+        .unwrap()
+    ).toEqual(4);
+  });
+
+  it("should test contains", () => {
+    expect(Maybe.some(5).contains(5)).toBeTruthy();
+    expect(Maybe.some(5).contains(4)).toBeFalsy();
+    expect(Maybe.none().contains(5)).toBeFalsy();
   });
 
   it("should ifIsSome call the function", () => {

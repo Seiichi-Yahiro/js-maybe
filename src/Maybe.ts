@@ -58,9 +58,23 @@ class Maybe<T> {
    * Avoid this function if possible
    * Throws error if the maybe is a none
    */
-  get = (): T => {
+  unwrap = (): T => {
     if (this.isNone()) {
       throw Error("Provided value must not be empty");
+    }
+
+    return this.value!;
+  };
+
+  /**
+   * Get the value of the maybe
+   * Avoid this function if possible
+   * Throws custom error message if the maybe is a none
+   * @param errorMsg
+   */
+  expect = (errorMsg: string): T => {
+    if (this.isNone()) {
+      throw Error(errorMsg);
     }
 
     return this.value!;
@@ -70,7 +84,7 @@ class Maybe<T> {
    * Get the value of the maybe if it is a some otherwise use the provided default value
    * @param defaultValue - default value (or function that creates a default value) to be used if value is none
    */
-  getOr = (defaultValue: (() => T) | T): T => {
+  unwrapOr = (defaultValue: (() => T) | T): T => {
     if (this.isNone()) {
       return isFunction(defaultValue) ? defaultValue() : defaultValue;
     }
@@ -83,7 +97,7 @@ class Maybe<T> {
    * If the new type is also a maybe then the returning type WON'T be double wrapped with a maybe
    * @param onSome - a function receiving the value returning a new value
    */
-  let<U>(onSome: (value: T) => U | Maybe<U>): Maybe<NonNullable<U>> {
+  map<U>(onSome: (value: T) => U | Maybe<U>): Maybe<NonNullable<U>> {
     if (this.isNone()) {
       return (this as unknown) as Maybe<NonNullable<U>>;
     }
@@ -102,7 +116,7 @@ class Maybe<T> {
    * @param onSome - a function receiving the value returning a new value
    * @param defaultValue - default value (or function that creates a default value) to be used if value is none
    */
-  letOr<U>(onSome: (value: T) => U, defaultValue: (() => U) | U): U {
+  mapOr<U>(onSome: (value: T) => U, defaultValue: (() => U) | U): U {
     if (this.isNone()) {
       return isFunction(defaultValue) ? defaultValue() : defaultValue;
     }
@@ -111,27 +125,57 @@ class Maybe<T> {
   }
 
   /**
-   * Fallback to a different value if the current maybe is none
-   * @param value - fallback value
+   * Calls predicate with the contained value and returns this if predicate is true otherwise returns None
+   * @param predicate - filter function
    */
-  or<U>(value: (() => U) | U): Maybe<NonNullable<T | U>> {
-    if (this.isNone()) {
-      return Maybe.of(value);
+  filter(predicate: (value: T) => boolean): Maybe<NonNullable<T>> {
+    if (this.isSome()) {
+      if (predicate(this.unwrap())) {
+        return (this as unknown) as Maybe<NonNullable<T>>;
+      }
+    }
+
+    return Maybe.none();
+  }
+
+  /**
+   * Use provided value if this is Some otherwise return None
+   * @param other - provided value
+   */
+  and<U>(other: (() => U) | U): Maybe<NonNullable<T | U>> {
+    if (this.isSome()) {
+      return Maybe.of(other);
     }
 
     return (this as unknown) as Maybe<NonNullable<T | U>>;
   }
 
   /**
-   * Fallback to a different value if the current maybe is none and immediately get it
-   * @param value - fallback value
+   * Use provided value if this is None otherwise return this
+   * @param other - provided value
    */
-  orGet<U>(value: (() => U) | U): T | U {
+  or<U>(other: (() => U) | U): Maybe<NonNullable<T | U>> {
     if (this.isNone()) {
-      return isFunction(value) ? value() : value;
+      return Maybe.of(other);
     }
 
-    return this.value!;
+    return (this as unknown) as Maybe<NonNullable<T | U>>;
+  }
+
+  /**
+   * Use this if some, or use provided value if some otherwise return None
+   * @param other - provided value
+   */
+  xor<U>(other: (() => U) | U): Maybe<NonNullable<T | U>> {
+    const that = Maybe.of(other);
+
+    if (this.isSome() && that.isNone()) {
+      return (this as unknown) as Maybe<NonNullable<T | U>>;
+    } else if (this.isNone() && that.isSome()) {
+      return that;
+    } else {
+      return Maybe.none();
+    }
   }
 
   /**
@@ -141,7 +185,7 @@ class Maybe<T> {
    */
   try<U>(onSome: (value: T) => U | Maybe<U>): Maybe<NonNullable<U>> {
     try {
-      return this.let(onSome);
+      return this.map(onSome);
     } catch (e) {
       return Maybe.none();
     }
@@ -172,13 +216,26 @@ class Maybe<T> {
   };
 
   /**
+   * Compare the containing value with the provided value
+   * Returns false if isNone
+   * @param value - value to compare
+   */
+  contains(value: T): boolean {
+    if (this.isSome()) {
+      return this.unwrap() === value;
+    }
+
+    return false;
+  }
+
+  /**
    * Check if two maybe instances are the same
    * @param maybe - a maybe to compare
    */
   equals = (maybe: Maybe<T>) =>
     this === maybe ||
     (this.isNone() && maybe.isNone()) ||
-    (this.isSome() && maybe.isSome() && this.get() === maybe.get());
+    (this.isSome() && maybe.isSome() && this.unwrap() === maybe.unwrap());
 
   private constructor(private value: T | null) {}
 }
