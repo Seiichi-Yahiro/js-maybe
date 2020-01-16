@@ -8,20 +8,20 @@
     "lodash.isnil": "4.0.0"
   },
   "devDependencies": {
-    "@stryker-mutator/core": "2.1.0",
-    "@stryker-mutator/html-reporter": "2.1.0",
-    "@stryker-mutator/jest-runner": "2.1.0",
-    "@stryker-mutator/typescript": "2.1.0",
-    "@types/jest": "24.0.15",
+    "@stryker-mutator/core": "2.5.0",
+    "@stryker-mutator/html-reporter": "2.5.0",
+    "@stryker-mutator/jest-runner": "2.5.0",
+    "@stryker-mutator/typescript": "2.5.0",
+    "@types/jest": "24.9.0",
     "@types/lodash.isfunction": "3.0.6",
     "@types/lodash.isnil": "4.0.6",
-    "husky": "3.0.1",
-    "jest": "24.8.0",
-    "prettier": "1.18.2",
-    "pretty-quick": "1.11.1",
-    "rimraf": "2.6.3",
-    "ts-jest": "24.0.2",
-    "typescript": "3.5.3"
+    "husky": "4.0.10",
+    "jest": "24.9.0",
+    "prettier": "1.19.1",
+    "pretty-quick": "2.0.1",
+    "rimraf": "3.0.0",
+    "ts-jest": "24.3.0",
+    "typescript": "3.7.4"
   },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
