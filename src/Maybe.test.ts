@@ -6,6 +6,13 @@ describe("Maybe", () => {
     expect(Maybe.none()).toBeInstanceOf(Maybe);
   });
 
+  it("should not create a nested maybe", () => {
+    expect(Maybe.some(Maybe.some(5)).unwrap()).toEqual(5);
+    expect(Maybe.some(Maybe.of(5)).unwrap()).toEqual(5);
+    expect(Maybe.of(Maybe.some(5)).unwrap()).toEqual(5);
+    expect(Maybe.of(Maybe.of(5)).unwrap()).toEqual(5);
+  });
+
   it("should throw an error and not create a maybe some", () => {
     const errorMessage = "Provided value must not be empty";
     expect(() => Maybe.some(null)).toThrowError(errorMessage);
@@ -169,7 +176,12 @@ describe("Maybe", () => {
     expect(Maybe.some(5).mapOr(num => num + 1, 0)).toEqual(6);
     expect(Maybe.some(1).mapOr(num => ["0", "1"][num], "0")).toEqual("1");
     expect(Maybe.none<number>().mapOr(num => num + 1, 5)).toEqual(5);
-    expect(Maybe.none<number>().mapOr(num => num + 1, () => 5)).toEqual(5);
+    expect(
+      Maybe.none<number>().mapOr(
+        num => num + 1,
+        () => 5
+      )
+    ).toEqual(5);
   });
 
   it("should filter the contained value", () => {
@@ -193,27 +205,27 @@ describe("Maybe", () => {
   it("should and 2 maybes", () => {
     expect(
       Maybe.some(5)
-        .and(4)
+        .and(Maybe.some(4))
         .unwrap()
     ).toEqual(4);
     expect(
       Maybe.some(5)
-        .and(undefined)
+        .and(Maybe.none())
         .isNone()
     ).toBeTruthy();
     expect(
       Maybe.none<number>()
-        .and(4)
+        .and(Maybe.some(4))
         .isNone()
     ).toBeTruthy();
     expect(
       Maybe.none()
-        .and(undefined)
+        .and(Maybe.none())
         .isNone()
     ).toBeTruthy();
     expect(
       Maybe.some(5)
-        .and(() => 4)
+        .and(() => Maybe.some(4))
         .unwrap()
     ).toEqual(4);
   });
@@ -221,27 +233,27 @@ describe("Maybe", () => {
   it("should or 2 maybes", () => {
     expect(
       Maybe.some(5)
-        .or(4)
+        .or(Maybe.some(4))
         .unwrap()
     ).toEqual(5);
     expect(
       Maybe.some(5)
-        .or(undefined)
+        .or(Maybe.none<number>())
         .unwrap()
     ).toEqual(5);
     expect(
       Maybe.none<number>()
-        .or(4)
+        .or(Maybe.some(4))
         .unwrap()
     ).toEqual(4);
     expect(
       Maybe.none()
-        .or(undefined)
+        .or(Maybe.none())
         .isNone()
     ).toBeTruthy();
     expect(
       Maybe.none<number>()
-        .or(() => 4)
+        .or(() => Maybe.some(4))
         .unwrap()
     ).toEqual(4);
   });
@@ -249,27 +261,27 @@ describe("Maybe", () => {
   it("should xor 2 maybes", () => {
     expect(
       Maybe.some(5)
-        .xor(4)
+        .xor(Maybe.some(4))
         .isNone()
     ).toBeTruthy();
     expect(
       Maybe.some(5)
-        .xor(undefined)
+        .xor(Maybe.none<number>())
         .unwrap()
     ).toEqual(5);
     expect(
       Maybe.none<number>()
-        .xor(4)
+        .xor(Maybe.some(4))
         .unwrap()
     ).toEqual(4);
     expect(
       Maybe.none()
-        .xor(undefined)
+        .xor(Maybe.none())
         .isNone()
     ).toBeTruthy();
     expect(
       Maybe.none<number>()
-        .xor(() => 4)
+        .xor(() => Maybe.some(4))
         .unwrap()
     ).toEqual(4);
   });

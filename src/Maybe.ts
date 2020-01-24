@@ -1,17 +1,28 @@
 import isNil from "lodash.isnil";
 import isFunction from "lodash.isfunction";
 
+type TypeOrMaybeType<T> = T | Maybe<T>;
+type FunctionOrValue<T> = (() => TypeOrMaybeType<T>) | TypeOrMaybeType<T>;
+
 class Maybe<T> {
   /**
    * Create a maybe with a value T
+   * If the value is already a maybe then the returning type WON'T be double wrapped with a maybe
    * Throws error if value is null or undefined
    * @param value
    */
-  static some<T>(value: (() => T) | T): Maybe<NonNullable<T>> {
+  static some<T>(value: FunctionOrValue<T>): Maybe<NonNullable<T>> {
     if (isNil(value)) {
       throw Error("Provided value must not be empty");
     }
-    return new Maybe<NonNullable<T>>(isFunction(value) ? value()! : value!);
+
+    const result = isFunction(value) ? value()! : value!;
+
+    if (result instanceof Maybe) {
+      return result as Maybe<NonNullable<T>>;
+    }
+
+    return new Maybe<NonNullable<T>>(result);
   }
 
   /**
@@ -23,9 +34,10 @@ class Maybe<T> {
 
   /**
    * Create a maybe that is either some or none depending on the provided value
+   * If the value is already a maybe then the returning type WON'T be double wrapped with a maybe
    * @param value
    */
-  static of<T>(value: (() => T) | T): Maybe<NonNullable<T>> {
+  static of<T>(value: FunctionOrValue<T>): Maybe<NonNullable<T>> {
     return isNil(value) ? Maybe.none() : Maybe.some(value);
   }
 
@@ -102,13 +114,7 @@ class Maybe<T> {
       return (this as unknown) as Maybe<NonNullable<U>>;
     }
 
-    const result = onSome(this.value!);
-
-    if (result instanceof Maybe) {
-      return result as Maybe<NonNullable<U>>;
-    }
-
-    return Maybe.of(result);
+    return Maybe.of(onSome(this.value!));
   }
 
   /**
@@ -142,7 +148,7 @@ class Maybe<T> {
    * Use provided value if this is Some otherwise return None
    * @param other - provided value
    */
-  and<U>(other: (() => U) | U): Maybe<NonNullable<T | U>> {
+  and<U>(other: (() => Maybe<U>) | Maybe<U>): Maybe<NonNullable<T | U>> {
     if (this.isSome()) {
       return Maybe.of(other);
     }
@@ -154,7 +160,7 @@ class Maybe<T> {
    * Use provided value if this is None otherwise return this
    * @param other - provided value
    */
-  or<U>(other: (() => U) | U): Maybe<NonNullable<T | U>> {
+  or<U>(other: (() => Maybe<U>) | Maybe<U>): Maybe<NonNullable<T | U>> {
     if (this.isNone()) {
       return Maybe.of(other);
     }
@@ -166,7 +172,7 @@ class Maybe<T> {
    * Use this if some, or use provided value if some otherwise return None
    * @param other - provided value
    */
-  xor<U>(other: (() => U) | U): Maybe<NonNullable<T | U>> {
+  xor<U>(other: (() => Maybe<U>) | Maybe<U>): Maybe<NonNullable<T | U>> {
     const that = Maybe.of(other);
 
     if (this.isSome() && that.isNone()) {
@@ -233,9 +239,8 @@ class Maybe<T> {
    * @param maybe - a maybe to compare
    */
   equals = (maybe: Maybe<T>) =>
-    this === maybe ||
     (this.isNone() && maybe.isNone()) ||
-    (this.isSome() && maybe.isSome() && this.unwrap() === maybe.unwrap());
+    (this.isSome() && maybe.contains(this.unwrap()));
 
   private constructor(private value: T | null) {}
 }
