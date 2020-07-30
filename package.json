@@ -1,27 +1,27 @@
 {
   "name": "js-maybe",
   "main": "dist/Maybe.js",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "dependencies": {
     "lodash.isfunction": "3.0.9",
     "lodash.isnil": "4.0.0"
   },
   "devDependencies": {
-    "@stryker-mutator/core": "2.5.0",
-    "@stryker-mutator/html-reporter": "2.5.0",
-    "@stryker-mutator/jest-runner": "2.5.0",
-    "@stryker-mutator/typescript": "2.5.0",
-    "@types/jest": "24.9.0",
+    "@stryker-mutator/core": "3.3.1",
+    "@stryker-mutator/html-reporter": "3.1.0",
+    "@stryker-mutator/jest-runner": "3.3.1",
+    "@stryker-mutator/typescript": "3.3.1",
+    "@types/jest": "26.0.7",
     "@types/lodash.isfunction": "3.0.6",
     "@types/lodash.isnil": "4.0.6",
-    "husky": "4.0.10",
-    "jest": "24.9.0",
-    "prettier": "1.19.1",
+    "husky": "4.2.5",
+    "jest": "26.2.1",
+    "prettier": "2.0.5",
     "pretty-quick": "2.0.1",
-    "rimraf": "3.0.0",
-    "ts-jest": "24.3.0",
-    "typescript": "3.7.4"
+    "rimraf": "3.0.2",
+    "ts-jest": "26.1.4",
+    "typescript": "3.9.7"
   },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
